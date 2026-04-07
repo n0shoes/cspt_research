@@ -1,0 +1,1 @@
+import{ssr as r,ssrHydrationKey as s,escape as t}from"solid-js/web";var d=["<div",'><h2>Dashboard</h2><nav><a href="/dashboard">Overview</a> | <a href="/dashboard/stats">Stats</a> | <a href="/dashboard/settings">Settings</a></nav><div>',"</div></div>"];function h(a){return r(d,s(),t(a.children))}export{h as default};

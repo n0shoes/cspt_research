@@ -1,0 +1,216 @@
+{
+  "_fetchEvent-CwNvSO3l.js": {
+    "file": "assets/fetchEvent-CwNvSO3l.js",
+    "name": "fetchEvent"
+  },
+  "_routing-B4udolHp.js": {
+    "file": "assets/routing-B4udolHp.js",
+    "name": "routing"
+  },
+  "_server-fns-UbuHNui7.js": {
+    "file": "assets/server-fns-UbuHNui7.js",
+    "name": "server-fns",
+    "imports": [
+      "_fetchEvent-CwNvSO3l.js"
+    ],
+    "dynamicImports": [
+      "src/routes/about.tsx?pick=default&pick=$css",
+      "src/routes/about.tsx?pick=default&pick=$css",
+      "src/routes/api/proxy/[...path].ts?pick=GET",
+      "src/routes/api/proxy/[...path].ts?pick=GET",
+      "src/routes/api/proxy/[...path].ts?pick=GET",
+      "src/routes/api/proxy/[...path].ts?pick=GET",
+      "src/routes/dashboard/index.tsx?pick=default&pick=$css",
+      "src/routes/dashboard/index.tsx?pick=default&pick=$css",
+      "src/routes/dashboard/settings.tsx?pick=default&pick=$css",
+      "src/routes/dashboard/settings.tsx?pick=default&pick=$css",
+      "src/routes/dashboard/stats.tsx?pick=default&pick=$css",
+      "src/routes/dashboard/stats.tsx?pick=default&pick=$css",
+      "src/routes/dashboard.tsx?pick=default&pick=$css",
+      "src/routes/dashboard.tsx?pick=default&pick=$css",
+      "src/routes/data/[dataId].tsx?pick=default&pick=$css",
+      "src/routes/data/[dataId].tsx?pick=default&pick=$css",
+      "src/routes/encoding-catchall/[...rest].tsx?pick=default&pick=$css",
+      "src/routes/encoding-catchall/[...rest].tsx?pick=default&pick=$css",
+      "src/routes/encoding-test/[testParam].tsx?pick=default&pick=$css",
+      "src/routes/encoding-test/[testParam].tsx?pick=default&pick=$css",
+      "src/routes/files/[...path].tsx?pick=default&pick=$css",
+      "src/routes/files/[...path].tsx?pick=default&pick=$css",
+      "src/routes/index.tsx?pick=default&pick=$css",
+      "src/routes/index.tsx?pick=default&pick=$css",
+      "src/routes/shop/[category]/[productId].tsx?pick=default&pick=$css",
+      "src/routes/shop/[category]/[productId].tsx?pick=default&pick=$css",
+      "src/routes/teams/[teamId]/members/[memberId].tsx?pick=default&pick=$css",
+      "src/routes/teams/[teamId]/members/[memberId].tsx?pick=default&pick=$css",
+      "src/routes/users/[userId].tsx?pick=default&pick=$css",
+      "src/routes/users/[userId].tsx?pick=default&pick=$css",
+      "src/routes/data/[dataId].tsx?pick=default&pick=%24css&tsr-directive-use-server=",
+      "src/app.tsx"
+    ]
+  },
+  "_server-fns-runtime-C2VZN4qS.js": {
+    "file": "assets/server-fns-runtime-C2VZN4qS.js",
+    "name": "server-fns-runtime",
+    "imports": [
+      "_fetchEvent-CwNvSO3l.js"
+    ]
+  },
+  "src/app.tsx": {
+    "file": "assets/app-Bf-bocom.js",
+    "name": "app",
+    "src": "src/app.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "_server-fns-UbuHNui7.js",
+      "_routing-B4udolHp.js",
+      "_fetchEvent-CwNvSO3l.js"
+    ]
+  },
+  "src/routes/about.tsx?pick=default&pick=$css": {
+    "file": "about.js",
+    "name": "about",
+    "src": "src/routes/about.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true
+  },
+  "src/routes/api/proxy/[...path].ts?pick=GET": {
+    "file": "_...path_.js",
+    "name": "_...path_",
+    "src": "src/routes/api/proxy/[...path].ts?pick=GET",
+    "isEntry": true,
+    "isDynamicEntry": true
+  },
+  "src/routes/dashboard.tsx?pick=default&pick=$css": {
+    "file": "dashboard.js",
+    "name": "dashboard",
+    "src": "src/routes/dashboard.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true
+  },
+  "src/routes/dashboard/index.tsx?pick=default&pick=$css": {
+    "file": "index.js",
+    "name": "index",
+    "src": "src/routes/dashboard/index.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true
+  },
+  "src/routes/dashboard/settings.tsx?pick=default&pick=$css": {
+    "file": "settings.js",
+    "name": "settings",
+    "src": "src/routes/dashboard/settings.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_routing-B4udolHp.js"
+    ]
+  },
+  "src/routes/dashboard/stats.tsx?pick=default&pick=$css": {
+    "file": "stats.js",
+    "name": "stats",
+    "src": "src/routes/dashboard/stats.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_routing-B4udolHp.js"
+    ]
+  },
+  "src/routes/data/[dataId].tsx?pick=default&pick=$css": {
+    "file": "_dataId_.js",
+    "name": "_dataId_",
+    "src": "src/routes/data/[dataId].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_server-fns-runtime-C2VZN4qS.js",
+      "_routing-B4udolHp.js",
+      "_fetchEvent-CwNvSO3l.js"
+    ]
+  },
+  "src/routes/data/[dataId].tsx?pick=default&pick=%24css&tsr-directive-use-server=": {
+    "file": "assets/_dataId_-C6MJuv4F.js",
+    "name": "_dataId_",
+    "src": "src/routes/data/[dataId].tsx?pick=default&pick=%24css&tsr-directive-use-server=",
+    "isDynamicEntry": true,
+    "imports": [
+      "_server-fns-runtime-C2VZN4qS.js",
+      "_fetchEvent-CwNvSO3l.js"
+    ]
+  },
+  "src/routes/encoding-catchall/[...rest].tsx?pick=default&pick=$css": {
+    "file": "_...rest_.js",
+    "name": "_...rest_",
+    "src": "src/routes/encoding-catchall/[...rest].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_routing-B4udolHp.js"
+    ]
+  },
+  "src/routes/encoding-test/[testParam].tsx?pick=default&pick=$css": {
+    "file": "_testParam_.js",
+    "name": "_testParam_",
+    "src": "src/routes/encoding-test/[testParam].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_routing-B4udolHp.js"
+    ]
+  },
+  "src/routes/files/[...path].tsx?pick=default&pick=$css": {
+    "file": "_...path_2.js",
+    "name": "_...path_",
+    "src": "src/routes/files/[...path].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_routing-B4udolHp.js"
+    ]
+  },
+  "src/routes/index.tsx?pick=default&pick=$css": {
+    "file": "index2.js",
+    "name": "index",
+    "src": "src/routes/index.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true
+  },
+  "src/routes/shop/[category]/[productId].tsx?pick=default&pick=$css": {
+    "file": "_productId_.js",
+    "name": "_productId_",
+    "src": "src/routes/shop/[category]/[productId].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_routing-B4udolHp.js"
+    ]
+  },
+  "src/routes/teams/[teamId]/members/[memberId].tsx?pick=default&pick=$css": {
+    "file": "_memberId_.js",
+    "name": "_memberId_",
+    "src": "src/routes/teams/[teamId]/members/[memberId].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_routing-B4udolHp.js"
+    ]
+  },
+  "src/routes/users/[userId].tsx?pick=default&pick=$css": {
+    "file": "_userId_.js",
+    "name": "_userId_",
+    "src": "src/routes/users/[userId].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_routing-B4udolHp.js"
+    ]
+  },
+  "virtual:$vinxi/handler/server-fns": {
+    "file": "server-fns.js",
+    "name": "server-fns",
+    "src": "virtual:$vinxi/handler/server-fns",
+    "isEntry": true,
+    "imports": [
+      "_server-fns-UbuHNui7.js",
+      "_fetchEvent-CwNvSO3l.js"
+    ]
+  }
+}

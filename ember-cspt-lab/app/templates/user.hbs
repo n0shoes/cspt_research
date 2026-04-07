@@ -1,0 +1,61 @@
+<div style="padding:2rem;font-family:monospace;max-width:700px;background:#0d0d0d;min-height:100vh;color:#ccc">
+  <a href="/" style="color:#888;font-size:0.85rem">← Back to index</a>
+  <h1 style="color:#fff;margin:0.5rem 0 0.25rem">params.user_id — Single Dynamic Param</h1>
+  <p style="color:#888;margin-bottom:1.5rem">
+    Source: <code>params.user_id</code> in model hook.
+    route-recognizer's <code>findHandler()</code> applies <code>decodeURIComponent()</code> to :param captures.
+    %2F becomes / — full traversal primitive.
+    Try: <a href="/users/..%2Fadmin" style="color:#f44">/users/..%2Fadmin</a>
+  </p>
+
+  {{!-- SOURCE --}}
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">SOURCE</div>
+    <code style="color:#f90">// app/routes/user.js model(params)</code><br/>
+    <code style="color:#f90">params.user_id → fetch(`/api/users/$&lbrace;userId&rbrace;`)</code>
+  </div>
+
+  {{!-- RAW VALUE --}}
+  <div style="background:#1a1a1a;border:1px solid {{if @model.hasTraversal '#f44' (if @model.hasEncodedSlash '#f90' '#555')}};border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">RAW VALUE from params.user_id</div>
+    <code style="color:{{if @model.hasTraversal '#f44' (if @model.hasEncodedSlash '#f90' '#ccc')}};font-size:1.1rem">
+      user_id = "{{@model.rawValue}}"
+    </code>
+    <div style="font-size:0.8rem;margin-top:8px">
+      {{#if @model.hasTraversal}}
+        <span style="color:#f44">DANGEROUS: %2F was decoded to / by findHandler() — traversal active. route-recognizer decoded this before your code saw it.</span>
+      {{else if @model.hasEncodedSlash}}
+        <span style="color:#f90">PARTIAL DECODE: %252F decoded to %2F (one level) but normalizePath re-encoded the % back. Double-encoding does NOT produce a slash in Ember — normalizePath's % re-encoding prevents it.</span>
+      {{else if @model.hasDots}}
+        <span style="color:#888">Contains .. but no decoded slash — traversal incomplete</span>
+      {{else if @model.hasSlash}}
+        <span style="color:#f44">Decoded value contains / — potential traversal primitive</span>
+      {{else}}
+        <span style="color:#888">Normal value — try /users/..%2Fadmin to test traversal</span>
+      {{/if}}
+    </div>
+  </div>
+
+  {{!-- FETCH URL --}}
+  <div style="background:#1a1a1a;border:1px solid {{if @model.hasTraversal '#f44' '#555'}};border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">FETCH URL CONSTRUCTED</div>
+    <code style="color:{{if @model.hasTraversal '#f44' '#ccc'}};font-size:1rem">
+      {{@model.fetchUrl}}
+    </code>
+    <div style="font-size:0.8rem;margin-top:6px">
+      {{#if @model.hasTraversal}}
+        <span style="color:#f44">DANGEROUS: Browser resolves ../ before sending — fetch exits intended /api/users/ scope</span>
+      {{else if @model.hasEncodedSlash}}
+        <span style="color:#f90">%2F stays encoded in fetch URL — server receives literal %2F, no path traversal</span>
+      {{else}}
+        <span style="color:#888">URL as constructed from decoded param</span>
+      {{/if}}
+    </div>
+  </div>
+
+  {{!-- RESULT --}}
+  <div style="background:#1a1a1a;border:1px solid #555;border-radius:6px;padding:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">RESULT from fetch</div>
+    <pre style="margin:0;color:#ccc;white-space:pre-wrap">{{json @model.result}}</pre>
+  </div>
+</div>

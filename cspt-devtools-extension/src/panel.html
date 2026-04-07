@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>doctorscan</h1>
+      <span id="page-url" class="page-url"></span>
+    </div>
+    <div class="header-right">
+      <span id="status" class="status">Ready</span>
+      <button id="btn-scan" class="btn btn-primary">Scan</button>
+      <button id="btn-reload" class="btn btn-secondary" title="Reload page and scan">Reload &amp; Scan</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="framework">Framework</button>
+    <button class="tab" data-tab="routes">Routes <span id="routes-count" class="badge">0</span></button>
+    <button class="tab" data-tab="sources">CSPT Sources <span id="sources-count" class="badge">0</span></button>
+    <button class="tab" data-tab="encoding">Encoding</button>
+  </nav>
+
+  <main>
+    <!-- Framework Tab -->
+    <section id="tab-framework" class="tab-content active">
+      <div id="framework-result" class="empty-state">
+        Click <strong>Scan</strong> to detect the framework
+      </div>
+    </section>
+
+    <!-- Routes Tab -->
+    <section id="tab-routes" class="tab-content">
+      <div class="controls">
+        <select id="route-filter">
+          <option value="all">All types</option>
+          <option value="route">Routes</option>
+          <option value="api">API</option>
+          <option value="fetch">Fetch</option>
+          <option value="navigation">Navigation</option>
+        </select>
+        <label class="checkbox-label">
+          <input type="checkbox" id="dynamic-only"> Dynamic only
+        </label>
+        <input type="text" id="route-search" placeholder="Filter paths..." class="search-input">
+      </div>
+      <div id="routes-table-container">
+        <table id="routes-table">
+          <thead>
+            <tr>
+              <th>Path</th>
+              <th>Type</th>
+              <th>Dynamic</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="routes-tbody"></tbody>
+        </table>
+      </div>
+      <div id="routes-empty" class="empty-state">No routes found yet</div>
+    </section>
+
+    <!-- CSPT Sources Tab -->
+    <section id="tab-sources" class="tab-content">
+      <nav class="sub-tabs">
+        <button class="sub-tab active" data-subtab="param-sources">Param Sources <span id="param-sources-count" class="badge">0</span></button>
+        <button class="sub-tab" data-subtab="api-calls">API Calls <span id="api-calls-count" class="badge">0</span></button>
+        <button class="sub-tab" data-subtab="chains">Chains <span id="chains-count" class="badge">0</span></button>
+        <button class="sub-tab" data-subtab="live">Live <span id="live-count" class="badge">0</span></button>
+      </nav>
+
+      <!-- Param Sources Sub-Tab -->
+      <div id="subtab-param-sources" class="subtab-content active">
+        <div class="controls">
+          <select id="param-risk-filter">
+            <option value="all">All risks</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <input type="text" id="param-search" placeholder="Filter param sources..." class="search-input">
+        </div>
+        <div id="param-sources-list"></div>
+        <div id="param-sources-empty" class="empty-state">No param sources found yet</div>
+      </div>
+
+      <!-- API Calls Sub-Tab -->
+      <div id="subtab-api-calls" class="subtab-content">
+        <div class="controls">
+          <select id="api-risk-filter">
+            <option value="all">All risks</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+          </select>
+          <input type="text" id="api-search" placeholder="Filter API calls..." class="search-input">
+        </div>
+        <div id="api-calls-list"></div>
+        <div id="api-calls-empty" class="empty-state">No API calls with dynamic params found yet</div>
+      </div>
+
+      <!-- Chains Sub-Tab (original combined source→sink view) -->
+      <div id="subtab-chains" class="subtab-content">
+        <div class="controls">
+          <select id="source-risk-filter">
+            <option value="all">All risks</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+          </select>
+          <input type="text" id="source-search" placeholder="Filter chains..." class="search-input">
+          <button id="btn-monitor" class="btn btn-secondary" title="Hook fetch/XHR to detect live CSPT flows">Monitor</button>
+        </div>
+        <div id="sources-list"></div>
+        <div id="sources-empty" class="empty-state">No CSPT chains found yet</div>
+      </div>
+
+      <!-- Live Sub-Tab -->
+      <div id="subtab-live" class="subtab-content">
+        <div class="controls">
+          <button id="btn-monitor-live" class="btn btn-secondary" title="Hook fetch/XHR to detect live CSPT flows">Start Monitor</button>
+        </div>
+        <div id="live-sources">
+          <div id="live-list"></div>
+        </div>
+        <div id="live-empty" class="empty-state">Click <strong>Start Monitor</strong> to hook fetch/XHR and detect live CSPT flows</div>
+      </div>
+    </section>
+
+    <!-- Encoding Tab -->
+    <section id="tab-encoding" class="tab-content">
+      <div id="encoding-content">
+        <div class="empty-state">Detect a framework first to see encoding techniques</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="core/framework-detector.js"></script>
+  <script src="core/path-extractor.js"></script>
+  <script src="core/cspt-analyzer.js"></script>
+  <script src="core/encoding-data.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>

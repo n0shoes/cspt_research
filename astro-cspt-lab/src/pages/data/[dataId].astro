@@ -1,0 +1,120 @@
+---
+const { dataId } = Astro.params;
+
+// SSRF with internal auth header — highest-impact SSRF pattern
+// The X-Internal-Auth header is automatically attached to the request
+// If dataId is manipulated, attacker controls which internal endpoint receives the auth header
+
+const fetchUrl = `http://internal-api.local/data/${dataId}`;
+const hasEncodedSlash = (dataId || '').includes('%2F') || (dataId || '').includes('%2f');
+const hasEncodedLetter = /%(6[1-9a-fA-F]|[4-5][0-9a-fA-F]|7[0-9a-eA-E])/.test(dataId || '');
+const overrideParam = Astro.url.searchParams.get('override');
+
+// If override param present, demonstrate the searchParams DECODED sink
+const effectiveUrl = overrideParam
+  ? `http://internal-api.local/data/${overrideParam}`
+  : fetchUrl;
+
+let result: unknown = null;
+let fetchError: string | null = null;
+try {
+  const res = await fetch(effectiveUrl, {
+    headers: { 'X-Internal-Auth': import.meta.env.INTERNAL_KEY || 'demo-key' }
+  });
+  result = await res.json().catch(() => ({ error: 'non-JSON response' }));
+} catch (e) {
+  fetchError = String(e);
+}
+
+const riskColor = overrideParam ? '#f44' : hasEncodedSlash ? '#4a4' : '#f90';
+const riskLabel = overrideParam
+  ? `CRITICAL: searchParams.get('override') is DECODED — ${overrideParam} came from URL`
+  : hasEncodedSlash
+  ? 'PARTIALLY SAFE: %2F stays encoded via decodeURI()'
+  : hasEncodedLetter
+  ? 'WARNING: Letter encoding decoded (middleware bypass possible)'
+  : 'Standard param — no special encoding';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Data {dataId} — Astro CSPT</title>
+  </head>
+  <body style="margin:0;padding:2rem;font-family:monospace;background:#0d0d0d;color:#ccc;max-width:700px;">
+
+    <p style="color:#888;margin-bottom:0.5rem;"><a href="/" style="color:#888;">← index</a></p>
+    <h1 style="color:#fff;">Internal Auth Header SSRF</h1>
+    <p style="color:#888;margin-bottom:1.5rem;">
+      Source: <code>Astro.params.dataId</code> OR <code>Astro.url.searchParams.get('override')</code>.
+      Server-side fetch with <code>X-Internal-Auth</code> header.
+      If attacker controls <code>override</code> param (searchParams = DECODED),
+      they redirect the authenticated request to a different internal endpoint.
+    </p>
+
+    <!-- BOX 1: SOURCE -->
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">SOURCE</div>
+      {overrideParam
+        ? <div>
+            <code style="color:#f44;">Astro.url.searchParams.get('override') = {JSON.stringify(overrideParam)}</code>
+            <div style="color:#f44;font-size:0.75rem;margin-top:4px;">searchParams are DECODED — %2F becomes /</div>
+          </div>
+        : <code style="color:#f90;">const &#123; dataId &#125; = Astro.params; // [dataId] route param</code>
+      }
+    </div>
+
+    <!-- BOX 2: RAW VALUE -->
+    <div style={`background:#1a1a1a;border:1px solid ${riskColor};border-radius:6px;padding:1rem;margin-bottom:1rem;`}>
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RAW VALUE</div>
+      <code style={`color:${riskColor};font-size:1.1rem;display:block;margin-bottom:4px;`}>
+        {overrideParam ? `override = ${JSON.stringify(overrideParam)}` : `dataId = ${JSON.stringify(dataId)}`}
+      </code>
+      <div style={`color:${riskColor};font-size:0.8rem;`}>{riskLabel}</div>
+      <div style="color:#555;font-size:0.75rem;margin-top:4px;">
+        pathname = {Astro.url.pathname}
+        {overrideParam && <span style="color:#f44;"> | override (decoded) = {overrideParam}</span>}
+      </div>
+    </div>
+
+    <!-- BOX 3: FETCH URL CONSTRUCTED -->
+    <div style="background:#1a1a1a;border:1px solid #f44;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">FETCH URL CONSTRUCTED (server-side SSRF + auth header)</div>
+      <code style="color:#f44;font-size:1rem;word-break:break-all;">
+        {effectiveUrl}
+      </code>
+      <div style="color:#f44;font-size:0.8rem;margin-top:6px;">
+        Headers sent: <code>X-Internal-Auth: [credential]</code>
+        <br/>
+        {overrideParam
+          ? 'SSRF: override param (decoded) redirects authenticated request to attacker-controlled internal path'
+          : 'SSRF: param controls internal path. With X-Internal-Auth header, attacker can access privileged endpoints.'
+        }
+      </div>
+    </div>
+
+    <!-- BOX 4: RESULT -->
+    <div style="background:#1a1a1a;border:1px solid #555;border-radius:6px;padding:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RESULT</div>
+      {fetchError
+        ? <pre style="margin:0;color:#f44;">{fetchError}</pre>
+        : <pre style="margin:0;color:#ccc;">{JSON.stringify(result, null, 2)}</pre>
+      }
+    </div>
+
+    <div style="margin-top:1.5rem;padding:0.75rem;background:#111;border-radius:6px;border:1px solid #222;">
+      <p style="margin:0;color:#888;font-size:0.8rem;">
+        <strong style="color:#f44;">Test URLs (SSRF with auth header):</strong>
+        <br/>
+        <a href="/data/abc" style="color:#ccc;">/data/abc</a> — normal param
+        <br/>
+        <a href="/data/abc?override=../../internal/admin" style="color:#f44;">/data/abc?override=../../internal/admin</a> — searchParams DECODED
+        <br/>
+        <a href="/data/test%2Fpath" style="color:#4a4;">/data/test%2Fpath</a> — %2F stays encoded (decodeURI)
+        <br/>
+        <a href="/data/%61bc" style="color:#f90;">/data/%61bc</a> — %61 decodes to a (letter encoding)
+      </p>
+    </div>
+
+  </body>
+</html>

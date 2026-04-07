@@ -1,0 +1,24 @@
+<div style="padding:2rem;font-family:monospace;max-width:700px;background:#0d0d0d;min-height:100vh;color:#ccc">
+  <a href="/" style="color:#888;font-size:0.85rem">← Back to index</a>
+  <h1 style="color:#fff;margin:0.5rem 0 0.25rem">Dashboard</h1>
+  <p style="color:#888;margin-bottom:1.5rem">Dashboard demos — query params and hash fragments</p>
+
+  <ul style="line-height:2.5">
+    <li>
+      <a href="/dashboard/stats?widget=chart">Stats — normal widget</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">?widget=chart</code>
+    </li>
+    <li>
+      <a href="/dashboard/stats?widget=../../attachments/malicious" style="color:#f44">Stats — CSPT + XSS chain</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#f44">?widget=../../attachments/malicious → triple curlies</code>
+    </li>
+    <li>
+      <a href="/dashboard/settings">Settings — hash fragment demo</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">add #../../admin/users to URL</code>
+    </li>
+    <li>
+      <a href="/dashboard/settings#../../admin/users" style="color:#f44">Settings — hash traversal</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#f44">#../../admin/users</code>
+    </li>
+  </ul>
+</div>

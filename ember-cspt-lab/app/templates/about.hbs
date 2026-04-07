@@ -1,0 +1,113 @@
+<div style="padding:2rem;font-family:monospace;max-width:700px;background:#0d0d0d;min-height:100vh;color:#ccc">
+  <a href="/" style="color:#888;font-size:0.85rem">← Back to index</a>
+  <h1 style="color:#fff;margin:0.5rem 0 0.25rem">About — Ember CSPT Decoding Pipeline</h1>
+
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#f90;font-size:0.9rem;margin-bottom:8px">Versions Tested</div>
+    <p style="color:#ccc;font-size:0.85rem;line-height:1.6;margin:0">
+      ember-source: 6.11.0 (2025)<br/>
+      route-recognizer: 0.3.4 (2017, last release — unchanged 8+ years)<br/>
+      router_js: 8.0.6 (2023)<br/>
+      @embroider/vite: 1.5.2 (2025)<br/>
+      Vite: 7.3.1
+    </p>
+  </div>
+
+  <div style="background:#1a1a1a;border:1px solid #f90;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#f90;font-size:0.9rem;margin-bottom:8px">6-Stage Decoding Pipeline</div>
+    <pre style="margin:0;color:#ccc;white-space:pre-wrap;font-size:0.85rem;line-height:1.5">
+Stage 1: Browser URL Decoding
+  Browser auto-decodes most percent-encoded chars
+  Exception: %2f stays as %2f in pathname
+      ↓
+Stage 2: HistoryLocation.getURL()
+  Strips baseURL/rootURL prefixes
+  No additional decoding
+      ↓
+Stage 3: route-recognizer.recognize()
+  Strips hash and query string
+  Calls normalizePath() if ENCODE_AND_DECODE_PATH_SEGMENTS=true
+      ↓
+Stage 3a: normalizePath()
+  Split on /, for each segment:
+    decodeURIComponent(segment)
+    .replace(/%|\//g, encodeURIComponent)
+  Dots decode: %2e%2e → ..
+  Slashes re-encode: / → %2F
+      ↓
+Stage 4: State Machine Matching
+  :param → regex ([^/]+) — rejects literal /
+  *param → regex (.+) — accepts everything
+      ↓
+Stage 5: findHandler()
+  :param → decodeURIComponent(capture)  ← THE KEY DECODE
+  *param → raw capture (no decode)       ← SKIPPED!
+      ↓
+Stage 6: model(params)
+  Developer receives:
+    :param → fully decoded (%2F → /)
+    *param → normalized but not final-decoded (%2F preserved)</pre>
+  </div>
+
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.9rem;margin-bottom:8px">Key Source Code References</div>
+    <p style="color:#ccc;font-size:0.85rem;line-height:1.6;margin:0">
+      <code>normalizePath()</code> — route-recognizer.es.js:100<br/>
+      <code>normalizeSegment()</code> — route-recognizer.es.js:96<br/>
+      <code>findHandler()</code> — route-recognizer.es.js:412-450<br/>
+      <code>ENCODE_AND_DECODE_PATH_SEGMENTS</code> — route-recognizer.es.js (flag, 4 references)<br/>
+      <code>recognize()</code> — route-recognizer.es.js:618-673
+    </p>
+  </div>
+
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.9rem;margin-bottom:8px">Ember-Specific Sinks</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Sink</th>
+          <th>Syntax</th>
+          <th>Compiles To</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#f44">Triple curlies</td>
+          <td><code>&lbrace;&lbrace;&lbrace;content&rbrace;&rbrace;&rbrace;</code></td>
+          <td>insertAdjacentHTML('beforeend', html)</td>
+        </tr>
+        <tr>
+          <td style="color:#f44">htmlSafe()</td>
+          <td><code>htmlSafe(string)</code></td>
+          <td>Marks string as safe for HTML rendering</td>
+        </tr>
+        <tr>
+          <td style="color:#f44">Ember Data adapter</td>
+          <td><code>urlForFindRecord(id)</code></td>
+          <td>Interpolates id into fetch URL without encoding</td>
+        </tr>
+        <tr>
+          <td style="color:#888">fetch() in model</td>
+          <td><code>fetch(`/api/$&lbrace;param&rbrace;`)</code></td>
+          <td>Browser resolves ../ before sending</td>
+        </tr>
+        <tr>
+          <td style="color:#888">transitionTo()</td>
+          <td><code>this.transitionTo(url)</code></td>
+          <td>Open redirect if URL from decoded param</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background:#001a00;border:1px solid #4a4;border-radius:6px;padding:1rem">
+    <div style="color:#4a4;font-size:0.9rem;margin-bottom:8px">Safe Patterns</div>
+    <p style="color:#ccc;font-size:0.85rem;line-height:1.6;margin:0">
+      1. Use <code>window.location.pathname</code> instead of route-recognizer params<br/>
+      2. Use <code>*wildcard</code> routes with %2f (star skips final decode)<br/>
+      3. Always <code>encodeURIComponent()</code> before interpolating into fetch URLs<br/>
+      4. Use double curlies <code>&lbrace;&lbrace;content&rbrace;&rbrace;</code> (HTML-escaped) instead of triple<br/>
+      5. Validate params with regex before use: <code>/^[a-zA-Z0-9_-]+$/.test(param)</code>
+    </p>
+  </div>
+</div>

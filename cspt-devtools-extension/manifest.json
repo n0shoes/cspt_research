@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "doctorscan",
+  "version": "1.0.0",
+  "description": "Client-Side Path Traversal scanner — detects frameworks, extracts routes, identifies CSPT sources and sinks with per-framework encoding techniques",
+  "devtools_page": "src/devtools.html",
+  "permissions": ["debugger"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

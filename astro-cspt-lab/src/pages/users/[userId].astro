@@ -1,0 +1,97 @@
+---
+const { userId } = Astro.params;
+
+// Astro uses decodeURI() — %2F stays %2F, but %61 decodes to 'a'
+// This means direct slash injection is blocked, but letter encoding bypasses path checks
+
+const fetchUrl = `https://api.example.com/users/${userId}`;
+
+// Demonstrate decodeURI() behavior
+const hasEncodedSlash = userId?.includes('%2F') || userId?.includes('%2f');
+const hasEncodedLetter = /%(6[1-9a-fA-F]|[4-5][0-9a-fA-F]|7[0-9a-eA-E])/.test(userId || '');
+
+// Server-side fetch — this is SSRF in real apps
+let result: unknown = null;
+let fetchError: string | null = null;
+try {
+  const res = await fetch(fetchUrl);
+  result = await res.json().catch(() => ({ error: 'non-JSON response' }));
+} catch (e) {
+  fetchError = String(e);
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>User {userId} — Astro CSPT</title>
+  </head>
+  <body style="margin:0;padding:2rem;font-family:monospace;background:#0d0d0d;color:#ccc;max-width:700px;">
+
+    <p style="color:#888;margin-bottom:0.5rem;"><a href="/" style="color:#888;">← index</a></p>
+    <h1 style="color:#fff;">Astro.params — Single Dynamic Param</h1>
+    <p style="color:#888;margin-bottom:1.5rem;">
+      Source: <code>Astro.params.userId</code> reading <code>[userId]</code> segment.
+      Astro uses <code>decodeURI()</code> — <code>%2F</code> stays encoded, but letters decode.
+      This is a <strong>server-side fetch</strong> — SSRF in real applications.
+    </p>
+
+    <!-- BOX 1: SOURCE -->
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">SOURCE</div>
+      <code style="color:#f90;">const &#123; userId &#125; = Astro.params;</code>
+    </div>
+
+    <!-- BOX 2: RAW VALUE -->
+    <div style={`background:#1a1a1a;border:1px solid ${hasEncodedSlash ? '#4a4' : hasEncodedLetter ? '#f90' : '#555'};border-radius:6px;padding:1rem;margin-bottom:1rem;`}>
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RAW VALUE from Astro.params (after decodeURI)</div>
+      <code style={`color:${hasEncodedSlash ? '#4a4' : hasEncodedLetter ? '#f90' : '#ccc'};font-size:1.1rem;`}>
+        userId = {JSON.stringify(userId)}
+      </code>
+      <div style={`color:${hasEncodedSlash ? '#4a4' : hasEncodedLetter ? '#f90' : '#888'};font-size:0.8rem;margin-top:6px;`}>
+        {hasEncodedSlash
+          ? 'PARTIALLY SAFE: %2F is still encoded — decodeURI() preserves reserved chars. No direct slash injection.'
+          : hasEncodedLetter
+          ? 'WARNING: Letter encoding decoded (e.g. %61→a). Middleware bypass possible (CVE-2025-64765).'
+          : 'No encoded chars detected in this request.'}
+      </div>
+      <div style="color:#555;font-size:0.75rem;margin-top:4px;">
+        pathname = {Astro.url.pathname}
+      </div>
+    </div>
+
+    <!-- BOX 3: FETCH URL CONSTRUCTED -->
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">FETCH URL CONSTRUCTED (server-side = SSRF)</div>
+      <code style="color:#f90;font-size:1rem;">
+        {fetchUrl}
+      </code>
+      <div style="color:#888;font-size:0.8rem;margin-top:6px;">
+        Server-side fetch with user-controlled path segment. In real apps this is SSRF.
+        %2F stays %2F in the URL (safe from traversal), but the host/path can be manipulated via param injection.
+      </div>
+    </div>
+
+    <!-- BOX 4: RESULT -->
+    <div style="background:#1a1a1a;border:1px solid #555;border-radius:6px;padding:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RESULT</div>
+      {fetchError
+        ? <pre style="margin:0;color:#f44;">{fetchError}</pre>
+        : <pre style="margin:0;color:#ccc;">{JSON.stringify(result, null, 2)}</pre>
+      }
+    </div>
+
+    <div style="margin-top:1.5rem;padding:0.75rem;background:#111;border-radius:6px;border:1px solid #222;">
+      <p style="margin:0;color:#888;font-size:0.8rem;">
+        <strong style="color:#f90;">Test URLs:</strong>
+        <br/>
+        <a href="/users/test%2Fpath" style="color:#4a4;">/users/test%2Fpath</a> — %2F stays encoded (safe from traversal)
+        <br/>
+        <a href="/users/%61dmin" style="color:#f90;">/users/%61dmin</a> — letter encoding decodes (%61→a), useful for middleware bypass
+        <br/>
+        <a href="/users/../../admin" style="color:#f44;">/users/../../admin</a> — literal slashes in URL path (different from encoded)
+      </p>
+    </div>
+
+  </body>
+</html>

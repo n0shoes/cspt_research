@@ -1,0 +1,158 @@
+---
+const { testParam } = Astro.params;
+const url = Astro.url;
+
+// Astro decodes params with decodeURI() — reserved chars like %2F stay encoded
+// But %61 (letter 'a') decodes. Key distinction from decodeURIComponent().
+
+const pathnameValue = url.pathname;
+const searchQ = url.searchParams.get('q');
+const hrefValue = url.href;
+
+// Analyze what's happening with the param
+const hasEncodedSlash = testParam?.includes('%2F') || testParam?.includes('%2f');
+const hasEncodedLetter = /%(6[1-9a-fA-F]|[4-5][0-9a-fA-F]|7[0-9a-eA-E])/.test(testParam || '');
+const hasLiteralSlash = testParam?.includes('/');
+const pathnameHasEncoded = pathnameValue.includes('%2F') || pathnameValue.includes('%2f') || pathnameValue.includes('%61');
+
+// Try to show what decodeURIComponent would give (for comparison)
+let decodeURIComponentValue = '';
+try {
+  decodeURIComponentValue = decodeURIComponent(testParam || '');
+} catch {
+  decodeURIComponentValue = '[decodeURIComponent failed — malformed encoding]';
+}
+let decodeURIValue = '';
+try {
+  decodeURIValue = decodeURI(testParam || '');
+} catch {
+  decodeURIValue = '[decodeURI failed]';
+}
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Encoding Test — Astro CSPT</title>
+  </head>
+  <body style="margin:0;padding:2rem;font-family:monospace;background:#0d0d0d;color:#ccc;max-width:700px;">
+
+    <p style="color:#888;margin-bottom:0.5rem;"><a href="/" style="color:#888;">← index</a></p>
+    <h1 style="color:#fff;">Encoding Diagnostic — decodeURI() vs decodeURIComponent()</h1>
+    <p style="color:#888;margin-bottom:1.5rem;">
+      Astro uses <code>decodeURI()</code> internally. This page shows the differential between
+      what Astro gives you vs what full decoding would give.
+      Try: <a href="/encoding-test/hello%2Fworld" style="color:#f90;">/encoding-test/hello%2Fworld</a> (slash),
+      <a href="/encoding-test/%61dmin" style="color:#f90;">/encoding-test/%61dmin</a> (letter a),
+      <a href="/encoding-test/hello?q=test%2Fvalue" style="color:#f90;">?q=test%2Fvalue</a> (searchParam)
+    </p>
+
+    <!-- BOX 1: SOURCE -->
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">SOURCE</div>
+      <code style="color:#f90;">const &#123; testParam &#125; = Astro.params;</code>
+    </div>
+
+    <!-- BOX 2: RAW VALUES + ENCODING ANALYSIS -->
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:8px;">RAW VALUES + ENCODING ANALYSIS</div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+        <thead>
+          <tr>
+            <th style="text-align:left;color:#555;font-weight:normal;padding-bottom:4px;border-bottom:1px solid #222;font-size:0.75rem;">Source</th>
+            <th style="text-align:left;color:#555;font-weight:normal;padding-bottom:4px;border-bottom:1px solid #222;font-size:0.75rem;">Value</th>
+            <th style="text-align:left;color:#555;font-weight:normal;padding-bottom:4px;border-bottom:1px solid #222;font-size:0.75rem;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:6px 0;color:#888;font-size:0.8rem;">Astro.params.testParam<br/><span style="color:#555;font-size:0.7rem;">(via decodeURI)</span></td>
+            <td style="padding:6px 4px;">
+              <code style={`color:${hasEncodedSlash ? '#4a4' : hasEncodedLetter ? '#f90' : hasLiteralSlash ? '#f44' : '#ccc'};`}>
+                {JSON.stringify(testParam)}
+              </code>
+            </td>
+            <td style="padding:6px 0;font-size:0.75rem;">
+              {hasEncodedSlash
+                ? <span style="color:#4a4;">%2F preserved (reserved char)</span>
+                : hasEncodedLetter
+                ? <span style="color:#f90;">letter decoded (%61→a)</span>
+                : hasLiteralSlash
+                ? <span style="color:#f44;">literal slash present</span>
+                : <span style="color:#888;">no special encoding</span>
+              }
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#888;font-size:0.8rem;">Astro.url.pathname<br/><span style="color:#555;font-size:0.7rem;">(raw, no decoding)</span></td>
+            <td style="padding:6px 4px;">
+              <code style="color:#4a4;">{JSON.stringify(pathnameValue)}</code>
+            </td>
+            <td style="padding:6px 0;font-size:0.75rem;">
+              {pathnameHasEncoded
+                ? <span style="color:#4a4;">encoding preserved in pathname</span>
+                : <span style="color:#888;">no encoded chars</span>
+              }
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 0;color:#888;font-size:0.8rem;">Astro.url.searchParams.get('q')<br/><span style="color:#555;font-size:0.7rem;">(DECODED by URLSearchParams)</span></td>
+            <td style="padding:6px 4px;">
+              <code style={`color:${searchQ && (searchQ.includes('/') || searchQ.includes('..')) ? '#f44' : searchQ ? '#f90' : '#555'};`}>
+                {JSON.stringify(searchQ)}
+              </code>
+            </td>
+            <td style="padding:6px 0;font-size:0.75rem;">
+              {searchQ && searchQ.includes('/')
+                ? <span style="color:#f44;">DECODED — %2F became / (DANGEROUS)</span>
+                : searchQ
+                ? <span style="color:#f90;">decoded value present</span>
+                : <span style="color:#555;">no ?q= param</span>
+              }
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BOX 3: decodeURI vs decodeURIComponent comparison -->
+    <div style="background:#1a1a1a;border:1px solid #f90;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:8px;">FETCH URL CONSTRUCTED + DECODING COMPARISON</div>
+
+      <div style="margin-bottom:8px;">
+        <span style="color:#888;font-size:0.75rem;">What Astro gives you (decodeURI result):</span>
+        <br/>
+        <code style="color:#f90;">https://api.example.com/users/{decodeURIValue}</code>
+      </div>
+      <div style="margin-bottom:8px;">
+        <span style="color:#888;font-size:0.75rem;">What full decode would give (decodeURIComponent result):</span>
+        <br/>
+        <code style="color:#f44;">https://api.example.com/users/{decodeURIComponentValue}</code>
+      </div>
+      <div style="color:#888;font-size:0.8rem;margin-top:6px;">
+        Key: <code>decodeURI('%2F')</code> = <code style="color:#4a4;">%2F</code> (safe) |
+        <code>decodeURIComponent('%2F')</code> = <code style="color:#f44;">/</code> (dangerous)
+      </div>
+    </div>
+
+    <!-- BOX 4: RESULT -->
+    <div style="background:#1a1a1a;border:1px solid #555;border-radius:6px;padding:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RESULT — Full Diagnostic JSON</div>
+      <pre style="margin:0;color:#ccc;font-size:0.85rem;">{JSON.stringify({
+  'Astro.params.testParam': testParam,
+  'Astro.url.pathname': pathnameValue,
+  'Astro.url.searchParams.q': searchQ,
+  'decodeURI(testParam)': decodeURIValue,
+  'decodeURIComponent(testParam)': decodeURIComponentValue,
+  'flags': {
+    hasEncodedSlash,
+    hasEncodedLetter,
+    hasLiteralSlash,
+    pathnameHasEncoded,
+  }
+}, null, 2)}</pre>
+    </div>
+
+  </body>
+</html>

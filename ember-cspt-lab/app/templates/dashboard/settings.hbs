@@ -1,0 +1,53 @@
+<div style="padding:2rem;font-family:monospace;max-width:700px;background:#0d0d0d;min-height:100vh;color:#ccc">
+  <a href="/" style="color:#888;font-size:0.85rem">← Back to index</a>
+  <h1 style="color:#fff;margin:0.5rem 0 0.25rem">window.location.hash — Hash Fragment</h1>
+  <p style="color:#888;margin-bottom:1.5rem">
+    Source: <code>window.location.hash</code>. The browser NEVER encodes or decodes the hash fragment.
+    Whatever you put after <code>#</code> is exactly what JavaScript sees. Literal <code>../</code> works directly.
+    Try: <a href="/dashboard/settings#../../admin/users" style="color:#f44">/dashboard/settings#../../admin/users</a>
+  </p>
+
+  {{!-- SOURCE --}}
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">SOURCE</div>
+    <code style="color:#f90">const hash = window.location.hash.slice(1)</code><br/>
+    <code style="color:#f90">fetch(`/api$&lbrace;hash&rbrace;`)</code>
+  </div>
+
+  {{!-- RAW VALUE --}}
+  <div style="background:#1a1a1a;border:1px solid {{if this.hasDots '#f44' '#555'}};border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">RAW VALUE from window.location.hash</div>
+    <code style="color:{{if this.hasDots '#f44' '#ccc'}};font-size:1.1rem">
+      hash = "{{this.hashPath}}"
+    </code>
+    <div style="color:{{if this.hasDots '#f44' '#888'}};font-size:0.8rem;margin-top:8px">
+      {{#if this.hasDots}}
+        DANGEROUS: Literal ../ in hash — never encoded by browser. Flows directly to fetch URL.
+      {{else if this.hashPath}}
+        Hash value present — no traversal pattern detected
+      {{else}}
+        No hash fragment — add #../../admin/users to the URL
+      {{/if}}
+    </div>
+  </div>
+
+  {{!-- FETCH URL --}}
+  <div style="background:#1a1a1a;border:1px solid {{if this.hasDots '#f44' '#555'}};border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">FETCH URL CONSTRUCTED</div>
+    {{#if this.fetchUrl}}
+      <code style="color:{{if this.hasDots '#f44' '#ccc'}};font-size:1rem">{{this.fetchUrl}}</code>
+    {{else}}
+      <span style="color:#555">(no fetch — hash is empty)</span>
+    {{/if}}
+  </div>
+
+  {{!-- RESULT --}}
+  <div style="background:#1a1a1a;border:1px solid #555;border-radius:6px;padding:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">RESULT from fetch</div>
+    {{#if this.result}}
+      <pre style="margin:0;color:#ccc;white-space:pre-wrap">{{json this.result}}</pre>
+    {{else}}
+      <span style="color:#555">(no result — hash is empty or fetch pending)</span>
+    {{/if}}
+  </div>
+</div>

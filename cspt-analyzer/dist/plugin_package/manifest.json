@@ -1,0 +1,31 @@
+{
+  "id": "cspt-analyzer",
+  "name": "CSPT Analyzer",
+  "version": "1.0.0",
+  "description": "Passive framework detection with client-side path extraction and CSPT sink analysis",
+  "author": {
+    "name": "xssdoctor",
+    "email": "xssdoctor@proton.me",
+    "url": "https://github.com/xssdoctor"
+  },
+  "links": {},
+  "plugins": [
+    {
+      "id": "cspt-backend",
+      "kind": "backend",
+      "name": "backend",
+      "entrypoint": "cspt-backend/index.js",
+      "runtime": "javascript"
+    },
+    {
+      "id": "cspt-frontend",
+      "kind": "frontend",
+      "name": "frontend",
+      "entrypoint": "cspt-frontend/index.js",
+      "style": "cspt-frontend/index.css",
+      "backend": {
+        "id": "cspt-backend"
+      }
+    }
+  ]
+}

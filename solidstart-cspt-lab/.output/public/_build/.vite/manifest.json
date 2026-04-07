@@ -1,0 +1,177 @@
+{
+  "_routing-BiwnDFp7.js": {
+    "file": "assets/routing-BiwnDFp7.js",
+    "name": "routing",
+    "imports": [
+      "_web-B8AGSbNU.js"
+    ]
+  },
+  "_web-B8AGSbNU.js": {
+    "file": "assets/web-B8AGSbNU.js",
+    "name": "web"
+  },
+  "src/routes/about.tsx?pick=default&pick=$css": {
+    "file": "assets/about-DEUc994O.js",
+    "name": "about",
+    "src": "src/routes/about.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js"
+    ]
+  },
+  "src/routes/dashboard.tsx?pick=default&pick=$css": {
+    "file": "assets/dashboard-_Pi9dtS3.js",
+    "name": "dashboard",
+    "src": "src/routes/dashboard.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js"
+    ]
+  },
+  "src/routes/dashboard/index.tsx?pick=default&pick=$css": {
+    "file": "assets/index-qUtsmhOm.js",
+    "name": "index",
+    "src": "src/routes/dashboard/index.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js"
+    ]
+  },
+  "src/routes/dashboard/settings.tsx?pick=default&pick=$css": {
+    "file": "assets/settings-D0l7AFs8.js",
+    "name": "settings",
+    "src": "src/routes/dashboard/settings.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ]
+  },
+  "src/routes/dashboard/stats.tsx?pick=default&pick=$css": {
+    "file": "assets/stats-3gLuSsaD.js",
+    "name": "stats",
+    "src": "src/routes/dashboard/stats.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ]
+  },
+  "src/routes/data/[dataId].tsx?pick=default&pick=$css": {
+    "file": "assets/_dataId_-CMyxRmN2.js",
+    "name": "_dataId_",
+    "src": "src/routes/data/[dataId].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ]
+  },
+  "src/routes/encoding-catchall/[...rest].tsx?pick=default&pick=$css": {
+    "file": "assets/_...rest_-BxmGNqkB.js",
+    "name": "_...rest_",
+    "src": "src/routes/encoding-catchall/[...rest].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ]
+  },
+  "src/routes/encoding-test/[testParam].tsx?pick=default&pick=$css": {
+    "file": "assets/_testParam_-CUdZ3l3i.js",
+    "name": "_testParam_",
+    "src": "src/routes/encoding-test/[testParam].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ]
+  },
+  "src/routes/files/[...path].tsx?pick=default&pick=$css": {
+    "file": "assets/_...path_-Cy9yggFp.js",
+    "name": "_...path_",
+    "src": "src/routes/files/[...path].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ]
+  },
+  "src/routes/index.tsx?pick=default&pick=$css": {
+    "file": "assets/index-D7e4AUfJ.js",
+    "name": "index",
+    "src": "src/routes/index.tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js"
+    ]
+  },
+  "src/routes/shop/[category]/[productId].tsx?pick=default&pick=$css": {
+    "file": "assets/_productId_-Bsaxo-44.js",
+    "name": "_productId_",
+    "src": "src/routes/shop/[category]/[productId].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ]
+  },
+  "src/routes/teams/[teamId]/members/[memberId].tsx?pick=default&pick=$css": {
+    "file": "assets/_memberId_-C97_8DtG.js",
+    "name": "_memberId_",
+    "src": "src/routes/teams/[teamId]/members/[memberId].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ]
+  },
+  "src/routes/users/[userId].tsx?pick=default&pick=$css": {
+    "file": "assets/_userId_-B1XWYV9C.js",
+    "name": "_userId_",
+    "src": "src/routes/users/[userId].tsx?pick=default&pick=$css",
+    "isEntry": true,
+    "isDynamicEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ]
+  },
+  "virtual:$vinxi/handler/client": {
+    "file": "assets/client-COPUI76C.js",
+    "name": "client",
+    "src": "virtual:$vinxi/handler/client",
+    "isEntry": true,
+    "imports": [
+      "_web-B8AGSbNU.js",
+      "_routing-BiwnDFp7.js"
+    ],
+    "dynamicImports": [
+      "src/routes/about.tsx?pick=default&pick=$css",
+      "src/routes/dashboard/index.tsx?pick=default&pick=$css",
+      "src/routes/dashboard/settings.tsx?pick=default&pick=$css",
+      "src/routes/dashboard/stats.tsx?pick=default&pick=$css",
+      "src/routes/dashboard.tsx?pick=default&pick=$css",
+      "src/routes/data/[dataId].tsx?pick=default&pick=$css",
+      "src/routes/encoding-catchall/[...rest].tsx?pick=default&pick=$css",
+      "src/routes/encoding-test/[testParam].tsx?pick=default&pick=$css",
+      "src/routes/files/[...path].tsx?pick=default&pick=$css",
+      "src/routes/index.tsx?pick=default&pick=$css",
+      "src/routes/shop/[category]/[productId].tsx?pick=default&pick=$css",
+      "src/routes/teams/[teamId]/members/[memberId].tsx?pick=default&pick=$css",
+      "src/routes/users/[userId].tsx?pick=default&pick=$css"
+    ]
+  }
+}

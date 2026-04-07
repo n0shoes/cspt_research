@@ -1,0 +1,127 @@
+---
+const { segments } = Astro.params;
+const url = Astro.url;
+
+// Catch-all [...segments] — multiple path segments joined with /
+// Each segment is decoded with decodeURI() by Astro
+// So /a%2Fb/c → segments = "a%2Fb/c" (the / between a%2Fb and c is literal)
+// But /a%2Fb%2Fc → segments = "a%2Fb%2Fc" (all encoded slashes stay encoded)
+
+const segmentArray = segments ? segments.split('/') : [];
+const hasLiteralSlash = (segments || '').includes('/');
+const hasEncodedSlash = (segments || '').includes('%2F') || (segments || '').includes('%2f');
+const hasDotDot = (segments || '').includes('..');
+
+const pathnameValue = url.pathname;
+const fetchUrl = `https://internal-service.local/files/${segments}`;
+
+const riskColor = (hasLiteralSlash && hasDotDot) ? '#f44'
+  : hasLiteralSlash ? '#f90'
+  : hasEncodedSlash ? '#4a4'
+  : '#555';
+
+const riskLabel = (hasLiteralSlash && hasDotDot)
+  ? 'CRITICAL: Literal ../ — path traversal possible via catch-all slashes'
+  : hasLiteralSlash
+  ? 'WARNING: Literal slashes from URL path are present in the param'
+  : hasEncodedSlash
+  ? 'SAFE: %2F stays encoded (decodeURI preserves reserved chars)'
+  : 'No special encoding detected';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Encoding Catchall — Astro CSPT</title>
+  </head>
+  <body style="margin:0;padding:2rem;font-family:monospace;background:#0d0d0d;color:#ccc;max-width:700px;">
+
+    <p style="color:#888;margin-bottom:0.5rem;"><a href="/" style="color:#888;">← index</a></p>
+    <h1 style="color:#fff;">catch-all [...segments] Encoding</h1>
+    <p style="color:#888;margin-bottom:1.5rem;">
+      Source: <code>Astro.params.segments</code> from <code>[...segments]</code> catch-all.
+      URL path slashes become literal slashes in the param.
+      <code>%2F</code> in a segment stays encoded (decodeURI preserves it).
+      Try encoding slashes vs using real slashes.
+    </p>
+
+    <!-- BOX 1: SOURCE -->
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">SOURCE</div>
+      <code style="color:#f90;">const &#123; segments &#125; = Astro.params; // [...segments] catch-all</code>
+      <div style="color:#888;font-size:0.75rem;margin-top:6px;">
+        URL: <code style="color:#555;">{url.href}</code>
+      </div>
+    </div>
+
+    <!-- BOX 2: RAW VALUE -->
+    <div style={`background:#1a1a1a;border:1px solid ${riskColor};border-radius:6px;padding:1rem;margin-bottom:1rem;`}>
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RAW VALUE from Astro.params (after decodeURI)</div>
+      <code style={`color:${riskColor};font-size:1.1rem;display:block;margin-bottom:6px;`}>
+        segments = {JSON.stringify(segments)}
+      </code>
+      <div style={`color:${riskColor};font-size:0.8rem;margin-bottom:6px;`}>
+        {riskLabel}
+      </div>
+
+      <div style="border-top:1px solid #222;padding-top:8px;margin-top:4px;">
+        <span style="color:#555;font-size:0.75rem;">Parsed as {segmentArray.length} segment(s):</span>
+        {segmentArray.map((seg, i) => (
+          <div style="margin-top:4px;">
+            <code style="color:#888;font-size:0.8rem;">[{i}] = </code>
+            <code style={`color:${seg.includes('..') ? '#f44' : seg.includes('/') ? '#f90' : '#ccc'};font-size:0.85rem;`}>
+              {JSON.stringify(seg)}
+            </code>
+          </div>
+        ))}
+      </div>
+
+      <div style="color:#555;font-size:0.75rem;margin-top:8px;">
+        pathname = {pathnameValue}
+      </div>
+    </div>
+
+    <!-- BOX 3: FETCH URL CONSTRUCTED -->
+    <div style="background:#1a1a1a;border:1px solid #f90;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">FETCH URL CONSTRUCTED (server-side = SSRF)</div>
+      <code style="color:#f90;font-size:1rem;word-break:break-all;">
+        {fetchUrl}
+      </code>
+      <div style="color:#888;font-size:0.8rem;margin-top:6px;">
+        Template literal inserts segments directly. Literal slashes from URL path = real path segments in fetch URL.
+      </div>
+    </div>
+
+    <!-- BOX 4: RESULT -->
+    <div style="background:#1a1a1a;border:1px solid #555;border-radius:6px;padding:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RESULT — Diagnostic JSON</div>
+      <pre style="margin:0;color:#ccc;font-size:0.85rem;">{JSON.stringify({
+  'Astro.params.segments': segments,
+  'typeof segments': typeof segments,
+  'Astro.url.pathname': pathnameValue,
+  'Astro.url.href': url.href,
+  'parsedSegments': segmentArray,
+  'flags': {
+    hasLiteralSlash,
+    hasEncodedSlash,
+    hasDotDot,
+    segmentCount: segmentArray.length,
+  },
+  'constructedFetchUrl': fetchUrl,
+}, null, 2)}</pre>
+    </div>
+
+    <div style="margin-top:1.5rem;padding:0.75rem;background:#111;border-radius:6px;border:1px solid #222;">
+      <p style="margin:0;color:#888;font-size:0.8rem;">
+        <strong style="color:#f90;">Test URLs:</strong>
+        <br/>
+        <a href="/encoding-catchall/a/b/c" style="color:#ccc;">/encoding-catchall/a/b/c</a> — normal (segments="a/b/c")
+        <br/>
+        <a href="/encoding-catchall/a%2Fb/c" style="color:#4a4;">/encoding-catchall/a%2Fb/c</a> — %2F stays encoded in segment
+        <br/>
+        <a href="/encoding-catchall/../../etc/passwd" style="color:#f44;">/encoding-catchall/../../etc/passwd</a> — literal traversal
+      </p>
+    </div>
+
+  </body>
+</html>

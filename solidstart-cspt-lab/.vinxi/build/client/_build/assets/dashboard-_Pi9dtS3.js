@@ -1,0 +1,1 @@
+import{i,l as n,t as d}from"./web-B8AGSbNU.js";var l=d("<div><h2>Dashboard</h2><nav><a href=/dashboard>Overview</a> | <a href=/dashboard/stats>Stats</a> | <a href=/dashboard/settings>Settings</a></nav><div>");function o(t){return(()=>{var a=i(l),e=a.firstChild,r=e.nextSibling,s=r.nextSibling;return n(s,()=>t.children),a})()}export{o as default};

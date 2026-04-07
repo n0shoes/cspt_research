@@ -1,0 +1,128 @@
+<div style="padding:2rem;font-family:monospace;max-width:700px;background:#0d0d0d;min-height:100vh;color:#ccc">
+  <a href="/" style="color:#888;font-size:0.85rem">← Back to index</a>
+  <h1 style="color:#fff;margin:0.5rem 0 0.25rem">Encoding Diagnostic — :param vs window.location</h1>
+  <p style="color:#888;margin-bottom:1.5rem">
+    Side-by-side comparison: route-recognizer decoded param vs raw browser values.
+    Test: <a href="/encoding-test/hello%2Fworld" style="color:#f90">/encoding-test/hello%2Fworld</a>
+    or <a href="/encoding-test/..%2Fapi%2Fadmin" style="color:#f44">/encoding-test/..%2Fapi%2Fadmin</a>
+    or <a href="/encoding-test/..%252Fadmin" style="color:#f44">/encoding-test/..%252Fadmin</a> (double-encode)
+  </p>
+
+  {{!-- Route-recognizer sources --}}
+  <div style="background:#1a1a1a;border:1px solid #f90;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#f90;font-size:0.8rem;margin-bottom:8px">ROUTE-RECOGNIZER SOURCES (Ember-specific)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Value</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#ccc"><code>params.testParam</code></td>
+          <td><code style="color:{{if @model.hasSlash '#f44' '#ccc'}}">{{@model.rawParam}}</code></td>
+          <td>
+            {{#if @model.hasSlash}}
+              <span style="color:#f44">DECODED — %2F → /</span>
+            {{else if @model.hasEncodedSlash}}
+              <span style="color:#4a4">ENCODED — %2F preserved</span>
+            {{else}}
+              <span style="color:#888">No slash in value</span>
+            {{/if}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {{!-- Window.location sources --}}
+  <div style="background:#1a1a1a;border:1px solid #4a4;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#4a4;font-size:0.8rem;margin-bottom:8px">WINDOW.LOCATION SOURCES (browser-native)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Value</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#ccc"><code>window.location.pathname</code></td>
+          <td><code style="color:#ccc;word-break:break-all">{{this.windowPathname}}</code></td>
+          <td><span style="color:#4a4">SAFE — raw browser value</span></td>
+        </tr>
+        <tr>
+          <td style="color:#ccc"><code>window.location.href</code></td>
+          <td><code style="color:#ccc;word-break:break-all;font-size:0.8rem">{{this.windowHref}}</code></td>
+          <td><span style="color:#4a4">SAFE — full URL</span></td>
+        </tr>
+        <tr>
+          <td style="color:#ccc"><code>window.location.search</code></td>
+          <td><code style="color:#ccc">{{this.windowSearch}}</code></td>
+          <td><span style="color:#888">Query string</span></td>
+        </tr>
+        <tr>
+          <td style="color:#ccc"><code>window.location.hash</code></td>
+          <td><code style="color:#ccc">{{this.windowHash}}</code></td>
+          <td><span style="color:#888">Hash fragment</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {{!-- Encoding differential --}}
+  <div style="background:#111;border:1px solid #f90;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#f90;font-size:0.8rem;margin-bottom:8px">ENCODING PIPELINE TRACE</div>
+    <p style="color:#ccc;font-size:0.85rem;line-height:1.6;margin:0">
+      1. Browser URL: <code>{{this.windowPathname}}</code><br/>
+      2. normalizePath(): decodeURIComponent each segment, re-encode % and /<br/>
+      3. Regex ([^/]+) match: segment matched without literal /<br/>
+      4. findHandler(): <code>decodeURIComponent(capture)</code> → <code style="color:#f44">{{@model.rawParam}}</code><br/>
+      5. model(params): developer receives fully decoded value
+    </p>
+  </div>
+
+  {{!-- Key difference from other frameworks --}}
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:8px">FRAMEWORK COMPARISON</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Framework</th>
+          <th>%2F in :param</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#ccc">Ember (route-recognizer)</td>
+          <td style="color:#f44">Decoded to /</td>
+          <td style="color:#f44">DANGEROUS</td>
+        </tr>
+        <tr>
+          <td style="color:#ccc">React Router</td>
+          <td style="color:#f44">Decoded to /</td>
+          <td style="color:#f44">DANGEROUS</td>
+        </tr>
+        <tr>
+          <td style="color:#ccc">Vue Router</td>
+          <td style="color:#f44">Decoded to /</td>
+          <td style="color:#f44">DANGEROUS</td>
+        </tr>
+        <tr>
+          <td style="color:#ccc">Next.js (page)</td>
+          <td style="color:#4a4">Re-encoded to %2F</td>
+          <td style="color:#4a4">SAFE</td>
+        </tr>
+        <tr>
+          <td style="color:#ccc">SolidStart</td>
+          <td style="color:#4a4">Never decoded</td>
+          <td style="color:#4a4">SAFE</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

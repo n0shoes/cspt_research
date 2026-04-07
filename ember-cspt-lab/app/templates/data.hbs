@@ -1,0 +1,38 @@
+<div style="padding:2rem;font-family:monospace;max-width:700px;background:#0d0d0d;min-height:100vh;color:#ccc">
+  <a href="/" style="color:#888;font-size:0.85rem">← Back to index</a>
+  <h1 style="color:#fff;margin:0.5rem 0 0.25rem">params.dataId — Dynamic Param</h1>
+  <p style="color:#888;margin-bottom:1.5rem">
+    Source: <code>params.dataId</code> in model hook.
+    Same decoding pipeline as /users/:user_id — findHandler() decodes %2F to /.
+    Try: <a href="/data/..%2Finternal" style="color:#f44">/data/..%2Finternal</a>
+  </p>
+
+  <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">SOURCE</div>
+    <code style="color:#f90">params.dataId → fetch(`/api/data/$&lbrace;dataId&rbrace;`)</code>
+  </div>
+
+  <div style="background:#1a1a1a;border:1px solid {{if @model.hasTraversal '#f44' (if @model.hasEncodedSlash '#f90' '#555')}};border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">RAW VALUE from params.dataId</div>
+    <code style="color:{{if @model.hasTraversal '#f44' (if @model.hasEncodedSlash '#f90' '#ccc')}};font-size:1.1rem">dataId = "{{@model.rawValue}}"</code>
+    <div style="font-size:0.8rem;margin-top:8px">
+      {{#if @model.hasTraversal}}
+        <span style="color:#f44">DANGEROUS: %2F decoded to / — traversal active</span>
+      {{else if @model.hasEncodedSlash}}
+        <span style="color:#f90">PARTIAL: %2F still encoded — no traversal. normalizePath re-encoded the %.</span>
+      {{else}}
+        <span style="color:#888">Normal value — try /data/..%2Finternal</span>
+      {{/if}}
+    </div>
+  </div>
+
+  <div style="background:#1a1a1a;border:1px solid {{if @model.hasTraversal '#f44' '#555'}};border-radius:6px;padding:1rem;margin-bottom:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">FETCH URL CONSTRUCTED</div>
+    <code style="color:{{if @model.hasTraversal '#f44' '#ccc'}};font-size:1rem">{{@model.fetchUrl}}</code>
+  </div>
+
+  <div style="background:#1a1a1a;border:1px solid #555;border-radius:6px;padding:1rem">
+    <div style="color:#888;font-size:0.8rem;margin-bottom:4px">RESULT from fetch</div>
+    <pre style="margin:0;color:#ccc;white-space:pre-wrap">{{json @model.result}}</pre>
+  </div>
+</div>

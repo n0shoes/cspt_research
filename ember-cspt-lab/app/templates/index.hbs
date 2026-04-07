@@ -1,0 +1,150 @@
+<div style="padding:2rem;font-family:monospace;max-width:900px;margin:0 auto;color:#ccc">
+  <h1 style="color:#fff;margin-bottom:0.25rem">Ember CSPT Lab</h1>
+  <p style="color:#888;margin-bottom:1.5rem">Client-Side Path Traversal research lab — Ember 6 / route-recognizer 0.3.4</p>
+
+  {{!-- Key Finding --}}
+  <div style="padding:1rem;background:#111;border-radius:8px;margin-bottom:2rem;border:1px solid #333">
+    <h3 style="margin:0 0 0.5rem;color:#f90">Key Finding: route-recognizer Decodes :param with decodeURIComponent</h3>
+    <p style="margin:0;color:#ccc;line-height:1.7">
+      <code>normalizePath()</code> decodes each segment, then re-encodes only <code>%</code> and <code>/</code>.
+      Then <code>findHandler()</code> applies <code>decodeURIComponent()</code> again for <code>:param</code> segments.
+      Result: <code>%2F</code> becomes <span style="color:#f44">/</span> — full traversal primitive.
+      <br/>
+      Star <code>*param</code> segments <span style="color:#4a4">skip</span> the final decode — <code>%2F</code> stays encoded.
+      <br/>
+      <strong>Double-encoding blocked:</strong> <code>%252f</code> → <code>%2f</code> (normalizePath decode) → <code>%252f</code> (% re-encoded back!) → <code>%2f</code> (findHandler). normalizePath's <code>%</code> re-encoding prevents the double-decode attack.
+      <br/>
+      Query params arrive <span style="color:#f44">decoded</span> by the browser's standard parsing.
+      <br/>
+      <code>window.location.hash</code> is <span style="color:#f44">never encoded</span> — literal <code>../</code> flows directly.
+    </p>
+  </div>
+
+  {{!-- DANGEROUS SOURCES --}}
+  <div style="padding:1rem;background:#1a0000;border-radius:8px;margin-bottom:2rem;border:1px solid #f44">
+    <h2 style="margin:0 0 0.75rem;color:#f44">DANGEROUS SOURCES (decode %2F to /)</h2>
+    <p style="color:#888;font-size:0.85rem;margin:0 0 0.75rem">
+      These sources return decoded values — %2F becomes / before your code sees it.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Demo</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#f44"><code>params.user_id</code><br/><span style="font-size:0.75rem;color:#888">(:param dynamic)</span></td>
+          <td style="padding:0.5rem"><a href="/users/..%2Fadmin" style="color:#f44">/users/..%2Fadmin</a></td>
+          <td style="color:#888;font-size:0.8rem">findHandler() decodes %2F to / — CSPT via fetch</td>
+        </tr>
+        <tr>
+          <td style="color:#f44"><code>params.widget</code><br/><span style="font-size:0.75rem;color:#888">(query param)</span></td>
+          <td style="padding:0.5rem"><a href="/dashboard/stats?widget=../../attachments/malicious" style="color:#f44">/dashboard/stats?widget=../../attachments/malicious</a></td>
+          <td style="color:#888;font-size:0.8rem">CSPT + triple curlies = XSS chain (CRITICAL)</td>
+        </tr>
+        <tr>
+          <td style="color:#f44"><code>location.hash</code></td>
+          <td style="padding:0.5rem"><a href="/dashboard/settings#../../admin/users" style="color:#f44">/dashboard/settings#../../admin/users</a></td>
+          <td style="color:#888;font-size:0.8rem">Literal ../ in hash flows to fetch — never encoded</td>
+        </tr>
+        {{!-- double-encode moved to SAFE section --}}
+        <tr>
+          <td style="color:#f44"><code>params.category</code><br/><code>params.productId</code></td>
+          <td style="padding:0.5rem"><a href="/shop/..%2Fadmin/99" style="color:#f44">/shop/..%2Fadmin/99</a></td>
+          <td style="color:#888;font-size:0.8rem">Multi-param — both decoded independently</td>
+        </tr>
+        <tr>
+          <td style="color:#f44"><code>params.teamId</code><br/><code>params.memberId</code></td>
+          <td style="padding:0.5rem"><a href="/teams/..%2Fadmin/members/m1" style="color:#f44">/teams/..%2Fadmin/members/m1</a></td>
+          <td style="color:#888;font-size:0.8rem">Nested params — each decoded via findHandler</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {{!-- SAFE / CONTRAST SOURCES --}}
+  <div style="padding:1rem;background:#001a00;border-radius:8px;margin-bottom:2rem;border:1px solid #4a4">
+    <h2 style="margin:0 0 0.75rem;color:#4a4">SAFE SOURCES (preserve %2F encoding)</h2>
+    <p style="color:#888;font-size:0.85rem;margin:0 0 0.75rem">
+      These sources keep %2F encoded or skip the final decode.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Demo</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#4a4"><code>*wildcard params</code><br/><span style="font-size:0.75rem;color:#888">with %2f</span></td>
+          <td style="padding:0.5rem"><a href="/docs/..%2Fadmin" style="color:#4a4">/docs/..%2Fadmin</a></td>
+          <td style="color:#888;font-size:0.8rem">Star segments skip final decodeURIComponent — %2F preserved</td>
+        </tr>
+        <tr>
+          <td style="color:#4a4"><code>window.location.pathname</code></td>
+          <td style="padding:0.5rem"><a href="/encoding-test/hello%2Fworld" style="color:#4a4">/encoding-test/hello%2Fworld</a></td>
+          <td style="color:#888;font-size:0.8rem">Raw browser value — bypasses route-recognizer</td>
+        </tr>
+        <tr>
+          <td style="color:#4a4"><code>%252f</code> (double-encode)</td>
+          <td style="padding:0.5rem"><a href="/users/..%252Fadmin" style="color:#4a4">/users/..%252Fadmin</a></td>
+          <td style="color:#888;font-size:0.8rem">normalizePath re-encodes % — blocks double-decode attack</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {{!-- Encoding Diagnostics --}}
+  <h2 style="color:#ccc">Encoding Diagnostics</h2>
+  <ul style="line-height:2.2">
+    <li>
+      <a href="/encoding-test/hello%2Fworld" style="font-weight:bold">/encoding-test/:testParam</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#f90;font-weight:bold">ENCODING DIFFERENTIAL — :param decode vs window.location</code>
+    </li>
+    <li>
+      <a href="/encoding-wildcard/a/b/c">/encoding-wildcard/*path</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">wildcard encoding — star vs :param contrast</code>
+    </li>
+  </ul>
+
+  <h2 style="color:#ccc;margin-top:1.5rem">All Demo Pages</h2>
+  <ul style="line-height:2.2">
+    <li>
+      <a href="/users/alice">/users/:user_id</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">params → fetch (primary CSPT demo)</code>
+    </li>
+    <li>
+      <a href="/docs/getting-started/intro">/docs/*doc_path</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">wildcard → fetch (star segment contrast)</code>
+    </li>
+    <li>
+      <a href="/dashboard/stats?widget=chart">/dashboard/stats</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#f44">query → fetch → triple curlies (XSS chain)</code>
+    </li>
+    <li>
+      <a href="/dashboard/settings">/dashboard/settings</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">location.hash → fetch</code>
+    </li>
+    <li>
+      <a href="/data/item1">/data/:dataId</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">params → fetch</code>
+    </li>
+    <li>
+      <a href="/shop/electronics/phone1">/shop/:category/:productId</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">multi-param concatenation → fetch</code>
+    </li>
+    <li>
+      <a href="/teams/team1/members/member1">/teams/:teamId/members/:memberId</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">nested params → fetch</code>
+    </li>
+    <li>
+      <a href="/about">/about</a>
+      <code style="margin-left:8px;font-size:0.8rem;color:#888">decoding pipeline reference</code>
+    </li>
+  </ul>
+</div>

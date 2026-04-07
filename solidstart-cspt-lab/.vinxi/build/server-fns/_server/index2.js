@@ -1,0 +1,1 @@
+import{ssr as t,ssrHydrationKey as r}from"solid-js/web";var e=["<div","><h2>Home</h2><p>SolidStart CSPT Research Lab - Testing client-side path traversal patterns.</p></div>"];function s(){return t(e,r())}export{s as default};

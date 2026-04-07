@@ -1,0 +1,119 @@
+---
+const { teamId, memberId } = Astro.params;
+
+// Nested dynamic segments — both decoded with decodeURI()
+// teamId + memberId are independently attacker-controlled
+// With 2+ params, the traversal surface is at each segment boundary
+
+const fetchUrl = `https://api.example.com/teams/${teamId}/members/${memberId}`;
+
+const teamHasEncodedSlash = (teamId || '').includes('%2F') || (teamId || '').includes('%2f');
+const memberHasEncodedSlash = (memberId || '').includes('%2F') || (memberId || '').includes('%2f');
+const teamHasLiteral = (teamId || '').includes('/');
+const memberHasLiteral = (memberId || '').includes('/');
+const teamHasEncodedLetter = /%(6[1-9a-fA-F]|[4-5][0-9a-fA-F]|7[0-9a-eA-E])/.test(teamId || '');
+
+let result: unknown = null;
+let fetchError: string | null = null;
+try {
+  const res = await fetch(fetchUrl);
+  result = await res.json().catch(() => ({ error: 'non-JSON response' }));
+} catch (e) {
+  fetchError = String(e);
+}
+
+const overallRisk = (teamHasLiteral || memberHasLiteral) ? '#f44'
+  : (teamHasEncodedSlash || memberHasEncodedSlash) ? '#4a4'
+  : teamHasEncodedLetter ? '#f90'
+  : '#555';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Team Member — Astro CSPT</title>
+  </head>
+  <body style="margin:0;padding:2rem;font-family:monospace;background:#0d0d0d;color:#ccc;max-width:700px;">
+
+    <p style="color:#888;margin-bottom:0.5rem;"><a href="/" style="color:#888;">← index</a></p>
+    <h1 style="color:#fff;">Nested Dynamic Params — Two Segments</h1>
+    <p style="color:#888;margin-bottom:1.5rem;">
+      Sources: <code>Astro.params.teamId</code> and <code>Astro.params.memberId</code>.
+      Both decoded via <code>decodeURI()</code>. Nested routes with multiple
+      attacker-controlled segments — each provides a traversal injection point.
+    </p>
+
+    <!-- BOX 1: SOURCE -->
+    <div style="background:#1a1a1a;border:1px solid #333;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">SOURCE</div>
+      <code style="color:#f90;">const &#123; teamId, memberId &#125; = Astro.params;</code>
+      <div style="color:#888;font-size:0.75rem;margin-top:4px;">
+        Route: <code>/teams/[teamId]/members/[memberId]</code>
+      </div>
+    </div>
+
+    <!-- BOX 2: RAW VALUES -->
+    <div style={`background:#1a1a1a;border:1px solid ${overallRisk};border-radius:6px;padding:1rem;margin-bottom:1rem;`}>
+      <div style="color:#888;font-size:0.8rem;margin-bottom:8px;">RAW VALUES from Astro.params (after decodeURI)</div>
+
+      <div style="margin-bottom:8px;">
+        <span style="color:#888;font-size:0.75rem;">teamId:</span>
+        <code style={`color:${teamHasLiteral ? '#f44' : teamHasEncodedSlash ? '#4a4' : teamHasEncodedLetter ? '#f90' : '#ccc'};margin-left:8px;`}>
+          {JSON.stringify(teamId)}
+        </code>
+        <span style={`color:${teamHasLiteral ? '#f44' : teamHasEncodedSlash ? '#4a4' : teamHasEncodedLetter ? '#f90' : '#888'};font-size:0.75rem;margin-left:8px;`}>
+          {teamHasLiteral ? 'literal slash' : teamHasEncodedSlash ? '%2F preserved' : teamHasEncodedLetter ? 'letter decoded' : 'plain'}
+        </span>
+      </div>
+
+      <div>
+        <span style="color:#888;font-size:0.75rem;">memberId:</span>
+        <code style={`color:${memberHasLiteral ? '#f44' : memberHasEncodedSlash ? '#4a4' : '#ccc'};margin-left:8px;`}>
+          {JSON.stringify(memberId)}
+        </code>
+        <span style={`color:${memberHasLiteral ? '#f44' : memberHasEncodedSlash ? '#4a4' : '#888'};font-size:0.75rem;margin-left:8px;`}>
+          {memberHasLiteral ? 'literal slash' : memberHasEncodedSlash ? '%2F preserved' : 'plain'}
+        </span>
+      </div>
+
+      <div style="color:#555;font-size:0.75rem;margin-top:8px;">
+        pathname = {Astro.url.pathname}
+      </div>
+    </div>
+
+    <!-- BOX 3: FETCH URL CONSTRUCTED -->
+    <div style="background:#1a1a1a;border:1px solid #f90;border-radius:6px;padding:1rem;margin-bottom:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">FETCH URL CONSTRUCTED (server-side = SSRF)</div>
+      <code style="color:#f90;font-size:1rem;word-break:break-all;">
+        {fetchUrl}
+      </code>
+      <div style="color:#888;font-size:0.8rem;margin-top:6px;">
+        Template: <code>`...teams/$&#123;teamId&#125;/members/$&#123;memberId&#125;`</code>
+        <br/>
+        Each param independently controls a segment. Injecting at teamId vs memberId hits different URL positions.
+      </div>
+    </div>
+
+    <!-- BOX 4: RESULT -->
+    <div style="background:#1a1a1a;border:1px solid #555;border-radius:6px;padding:1rem;">
+      <div style="color:#888;font-size:0.8rem;margin-bottom:4px;">RESULT</div>
+      {fetchError
+        ? <pre style="margin:0;color:#f44;">{fetchError}</pre>
+        : <pre style="margin:0;color:#ccc;">{JSON.stringify(result, null, 2)}</pre>
+      }
+    </div>
+
+    <div style="margin-top:1.5rem;padding:0.75rem;background:#111;border-radius:6px;border:1px solid #222;">
+      <p style="margin:0;color:#888;font-size:0.8rem;">
+        <strong style="color:#f90;">Test URLs:</strong>
+        <br/>
+        <a href="/teams/1/members/42" style="color:#ccc;">/teams/1/members/42</a> — normal
+        <br/>
+        <a href="/teams/1%2F../../admin/members/42" style="color:#4a4;">/teams/1%2F../../admin/members/42</a> — %2F stays encoded
+        <br/>
+        <a href="/teams/%61dmin/members/42" style="color:#f90;">/teams/%61dmin/members/42</a> — %61 decodes to a
+      </p>
+    </div>
+
+  </body>
+</html>
