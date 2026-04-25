@@ -4,6 +4,8 @@ Comprehensive research into Client-Side Path Traversal (CSPT) vulnerabilities ac
 
 **Presented at:** Critical Thinking Bug Bounty Podcast (March 19, 2026)
 
+
+https://lab.ctbb.show/research/the-dot-dot-slash-that-frameworks-hand-you
 ---
 
 ## The Core Insight
